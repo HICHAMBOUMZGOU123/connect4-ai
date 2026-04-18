@@ -1,0 +1,55 @@
+﻿# SECRETS
+.env
+.env.*
+*.key
+*.pem
+
+# PYTHON
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+build/
+dist/
+venv/
+env/
+.venv/
+
+# MODELES IA
+*.pt
+*.pth
+*.h5
+*.pkl
+*.joblib
+*.onnx
+cerveau_expert.h5
+modele_ia_best.pt
+
+# BASE DE DONNEES
+*.db
+*.sqlite
+*.sqlite3
+
+# DONNEES / SCRAPING
+edge_profile/
+processed_matches/
+parties_csv/
+*.csv
+sauvegarde_partie.json
+config.json
+
+# LOGS
+*.log
+logs/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ARCHIVES
+*.zip
+*.tar.gz
+*.rar
