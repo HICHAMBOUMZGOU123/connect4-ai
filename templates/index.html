@@ -8,167 +8,69 @@
 
 <body>
 
+    <a href="/" class="btn-retour" title="Retour à l'accueil">
+        <span>←</span> Accueil
+    </a>
+
     <div class="site-header">
         <h1 class="title-game">Puissance <span>4</span></h1>
         <div class="site-signature">by HichamDacine & TensorFlow</div>
     </div>
 
-    <div class="controls">
-        <button onclick="nouvellePartie()">Nouvelle partie</button>
-        <button onclick="annulerCoup()">↩ Annuler</button>
-        <button onclick="refaireCoup()">↪ Refaire</button>
-        <button onclick="ouvrirHistorique()">Historique</button>
-        <button id="btnPrediction" onclick="afficherConseil()" style="display:none;">💡 Prédiction</button>
-        <button id="btnAnalyser" onclick="analyserDepuisJeu()" style="display:none;">🔍 Analyser</button>
-        <select id="modeSelect" onchange="changerMode()">
-            <option value="2">2 joueurs humains</option>
-            <option value="1">1 joueur vs IA</option>
-            <option value="0">IA vs IA</option>
-        </select>
-
-        <button id="btnSituation" onclick="activerSituation()">🧠 Mode Situation</button>
-        <button id="btnLancerIA" onclick="lancerIAvIA()" style="display:none;">▶ Lancer</button>
-
-        <button onclick="document.getElementById('chargerFichier').click()">📂 Charger</button>
-        <input type="file" id="chargerFichier" accept=".txt" onchange="chargerDepuisFichier()" style="display:none;">
-
-        <select id="departSelect" onchange="changerDepart()">
-            <option value="1">🔴 Rouge commence</option>
-            <option value="2">🟡 Jaune commence</option>
-        </select>
-    </div>
+    <select id="departSelect" onchange="changerDepart()" style="display:none;">
+        <option value="1">Rouge commence</option>
+        <option value="2">Jaune commence</option>
+    </select>
 
     <div class="game-layout">
 
-        <!-- ── Panneau IA (modes 0 et 1) ── -->
-        <div id="zoneIA" class="ia-panel" style="display:none;">
-            <h3>Réglages IA</h3>
+        <!-- ── BARRE DE BOUTONS À GAUCHE ── -->
+        <div class="controls-sidebar">
+            <button class="sidebar-btn btn-primary" onclick="nouvellePartie()">
+                Nouvelle partie
+            </button>
 
-            <div class="ia-block">
-                <strong style="color:#e74c3c;">Joueur Rouge</strong>
-                <label>Stratégie</label>
-                <select id="strategieRouge" onchange="changerStrategie()">
-                    <option value="aleatoire">Aléatoire</option>
-                    <option value="minimax" selected>Minimax</option>
-                </select>
-                <label>Profondeur</label>
-                <select id="profondeurRouge" onchange="changerProfondeur('rouge')">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                </select>
+            <div class="sidebar-row" id="undoRedoRow">
+                <button class="sidebar-btn btn-half" onclick="annulerCoup()">↩ Annuler</button>
+                <button class="sidebar-btn btn-half" onclick="refaireCoup()">↪ Refaire</button>
             </div>
 
-            <div class="ia-block">
-                <strong style="color:#f1c40f;">Joueur Jaune</strong>
-                <label>Stratégie</label>
-                <select id="strategieJaune" onchange="changerStrategie()">
-                    <option value="aleatoire">Aléatoire</option>
-                    <option value="minimax" selected>Minimax</option>
-                </select>
-                <label>Profondeur</label>
-                <select id="profondeurJaune" onchange="changerProfondeur('jaune')">
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4" selected>4</option>
-                    <option value="5">5</option>
-                    <option value="6">6</option>
-                    <option value="8">8</option>
-                    <option value="10">10</option>
-                </select>
-            </div>
-
-            <div class="ia-block">
-                <strong>Timing IA vs IA</strong>
-                <label>Délai (ms)</label>
-                <input id="delaiIA" type="number" value="600" min="50" step="50">
-                <button class="btn-valider" onclick="appliquerDelaiIA()">Appliquer</button>
-            </div>
-        </div>
-
-        <!-- ── Panneau Mode Situation ── -->
-        <div id="zoneSituation" class="ia-panel" style="display:none;">
-            <h3>🧠 Mode Situation</h3>
-
-            <div class="ia-block">
-                <strong>Pion à placer</strong>
-                <div class="pion-buttons">
-                    <button id="btnPionRouge"
-                            class="btn-pion actif"
-                            onclick="changerPionEditeur(1)">
-                        🔴 Rouge
-                    </button>
-                    <button id="btnPionJaune"
-                            class="btn-pion"
-                            onclick="changerPionEditeur(2)">
-                        🟡 Jaune
-                    </button>
-                    <button id="btnPionEffacer"
-                            class="btn-pion btn-effacer"
-                            onclick="changerPionEditeur(0)">
-                        ✕ Effacer
-                    </button>
-                </div>
-                <small style="opacity:0.6; margin-top:4px;">
-                    Cliquez une case occupée pour l'effacer
-                </small>
-            </div>
-
-            <div class="ia-block">
-                <strong>📂 Importer une séquence</strong>
-                <small style="opacity:0.6;">Fichier .txt avec les coups (ex: 5544332)</small>
-                <input type="file" id="importFichier" accept=".txt" onchange="importerSequence()">
-                <div id="importInfo" style="font-size:12px; margin-top:4px; opacity:0.7;"></div>
-            </div>
-
-            <div class="ia-block">
-                <strong>Analyser la position</strong>
-                <label>Joueur qui joue</label>
-                <select id="joueurAnalyse">
-                    <option value="1">🔴 Rouge joue</option>
-                    <option value="2">🟡 Jaune joue</option>
-                </select>
-                <label>Profondeur analyse</label>
-                <select id="profondeurAnalyse" onchange="changerProfondeurAnalyse()">
-                    <option value="6">6 (rapide)</option>
-                    <option value="8">8 (normal)</option>
-                    <option value="10" selected>10 (précis)</option>
-                    <option value="12">12 (profond)</option>
-                    <option value="14">14 (lent)</option>
-                </select>
-                <button class="btn-valider" onclick="situationAnalyser()">
-                    🔍 Analyser
+            <div class="mode-switcher" title="Changer le mode de jeu">
+                <button id="btnMode2" class="mode-btn" onclick="switcherMode(2)" title="2 Joueurs humains">
+                    👤👤
+                </button>
+                <button id="btnMode1" class="mode-btn" onclick="switcherMode(1)" title="Humain vs IA">
+                    👤🤖
+                </button>
+                <button id="btnMode0" class="mode-btn" onclick="switcherMode(0)" title="IA vs IA">
+                    🤖🤖
                 </button>
             </div>
 
-            <div class="ia-block">
-                <strong>▶ Continuer la partie</strong>
-                <small style="opacity:0.6;">Utilise le joueur sélectionné ci-dessus</small>
-                <div class="pion-buttons">
-                    <button class="btn-pion" onclick="continuerPartie(2)">
-                        👤👤 2 Joueurs
-                    </button>
-                    <button class="btn-pion" onclick="continuerPartie(1)">
-                        👤🤖 Humain vs IA
-                    </button>
-                    <button class="btn-pion" onclick="continuerPartie(0)">
-                        🤖🤖 IA vs IA
-                    </button>
-                </div>
-            </div>
+            <button id="btnSituation" class="sidebar-btn" onclick="activerSituation()">
+                🧠 Mode Situation
+            </button>
 
-            <div class="ia-block">
-                <button class="btn-effacer-tout" onclick="situationEffacer()">
-                    🗑️ Effacer le plateau
-                </button>
-            </div>
+            <button id="btnPrediction" class="sidebar-btn" onclick="afficherConseil()" style="display:none;">
+                💡 Prédiction
+            </button>
 
+            <button id="btnAnalyser" class="sidebar-btn" onclick="analyserDepuisJeu()" style="display:none;">
+                🔍 Analyser
+            </button>
+
+            <button id="btnLancerIA" class="sidebar-btn" onclick="lancerIAvIA()" style="display:none;">
+                ▶ Lancer
+            </button>
+
+            <button class="sidebar-btn" onclick="ouvrirHistorique()">
+                📚 Historique
+            </button>
+
+            <button class="sidebar-btn" onclick="document.getElementById('chargerFichier').click()">
+                📂 Charger
+            </button>
+            <input type="file" id="chargerFichier" accept=".txt" onchange="chargerDepuisFichier()" style="display:none;">
         </div>
 
         <!-- ── Centre : plateau + info ── -->
@@ -178,15 +80,124 @@
             <div id="zoneConseil" style="display:none;"></div>
         </div>
 
-        <!-- ── Résultat analyse (droite) ── -->
-        <!-- CORRIGÉ : resultatAnalyse en latin (pas cyrillique) -->
-        <div id="zoneAnalyseResultat" style="display:none;">
-            <div id="resultatAnalyse"></div>
+        <!-- ── Panneau DROITE (IA / Situation / Analyse) ── -->
+        <div class="right-panel">
+
+            <div id="zoneIA" class="ia-panel" style="display:none;">
+                <h3>Réglages IA</h3>
+
+                <div class="ia-block">
+                    <strong style="color:#e74c3c;">Joueur Rouge</strong>
+                    <label>Stratégie</label>
+                    <select id="strategieRouge" onchange="changerStrategie()">
+                        <option value="aleatoire">Aléatoire</option>
+                        <option value="minimax" selected>Minimax</option>
+                    </select>
+                    <label>Profondeur</label>
+                    <select id="profondeurRouge" onchange="changerProfondeur('rouge')">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <div class="ia-block">
+                    <strong style="color:#f1c40f;">Joueur Jaune</strong>
+                    <label>Stratégie</label>
+                    <select id="strategieJaune" onchange="changerStrategie()">
+                        <option value="aleatoire">Aléatoire</option>
+                        <option value="minimax" selected>Minimax</option>
+                    </select>
+                    <label>Profondeur</label>
+                    <select id="profondeurJaune" onchange="changerProfondeur('jaune')">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4" selected>4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="8">8</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+
+                <div class="ia-block">
+                    <strong>Timing IA vs IA</strong>
+                    <label>Délai (ms)</label>
+                    <input id="delaiIA" type="number" value="600" min="50" step="50">
+                    <button class="btn-valider" onclick="appliquerDelaiIA()">Appliquer</button>
+                </div>
+            </div>
+
+            <div id="zoneSituation" class="ia-panel" style="display:none;">
+                <h3>🧠 Mode Situation</h3>
+
+                <div class="ia-block">
+                    <strong>Pion à placer</strong>
+                    <div class="pion-buttons">
+                        <button id="btnPionRouge"
+                                class="btn-pion actif"
+                                onclick="changerPionEditeur(1)">
+                            🔴 Rouge
+                        </button>
+                        <button id="btnPionJaune"
+                                class="btn-pion"
+                                onclick="changerPionEditeur(2)">
+                            🟡 Jaune
+                        </button>
+                    </div>
+                    <small style="opacity:0.6; margin-top:4px;">
+                        Cliquez une case occupée pour l'effacer
+                    </small>
+                </div>
+
+                <input type="file" id="importFichier" accept=".txt" onchange="importerSequence()" style="display:none;">
+                <div id="importInfo" style="display:none;"></div>
+
+                <div class="ia-block">
+                    <strong>Analyser la position</strong>
+                    <label>Joueur qui joue</label>
+                    <select id="joueurAnalyse">
+                        <option value="1">🔴 Rouge joue</option>
+                        <option value="2">🟡 Jaune joue</option>
+                    </select>
+                    <small style="opacity:0.5; font-size:11px; margin-top:-2px;">
+                        💡 Ce joueur sera aussi celui qui commencera si vous changez de mode
+                    </small>
+                    <label>Profondeur analyse</label>
+                    <select id="profondeurAnalyse" onchange="changerProfondeurAnalyse()">
+                        <option value="6">6 (rapide)</option>
+                        <option value="8">8 (normal)</option>
+                        <option value="10" selected>10 (précis)</option>
+                        <option value="12">12 (profond)</option>
+                        <option value="14">14 (lent)</option>
+                    </select>
+                    <button class="btn-valider" onclick="situationAnalyser()">
+                        🔍 Analyser
+                    </button>
+                </div>
+
+                <div class="ia-block">
+                    <button class="btn-effacer-tout" onclick="situationEffacer()">
+                        🗑️ Effacer le plateau
+                    </button>
+                </div>
+
+            </div>
+
+            <div id="zoneAnalyseResultat" style="display:none;">
+                <div id="resultatAnalyse"></div>
+            </div>
+
         </div>
 
     </div>
 
-    <!-- ── Modal Historique ── -->
     <div id="modalHistorique" class="modal">
         <div class="modal-content">
             <span class="close" onclick="fermerHistorique()">&times;</span>
@@ -208,13 +219,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        window.onclick = function(event) {
-            const modal = document.getElementById("modalHistorique");
-            if (event.target === modal) modal.style.display = "none";
-        }
-    </script>
 
     <script src="{{ url_for('static', filename='game.js') }}"></script>
 

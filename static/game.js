@@ -1,5 +1,5 @@
 /* ================================================
-   ÉTAT GLOBAL — tout est ici, zéro serveur
+   ÉTAT GLOBAL
 ================================================ */
 
 const ETAT = {
@@ -12,7 +12,7 @@ const ETAT = {
     lignes:         9,
     colonnes:       9,
 
-    mode:           2,   // 0=IAvIA, 1=HvIA, 2=HvH, 3=Situation
+    mode:           2,
     ia_rouge:       "minimax",
     ia_jaune:       "minimax",
     profondeur_rouge: 4,
@@ -24,32 +24,49 @@ const ETAT = {
     delai_ia:       600,
     en_train:       false,
 
-    // Replay
     replay_actif:   false,
     replay_coups:   [],
     replay_index:   0,
 
-    // Undo/Redo
     redo_pile:      [],
 
-    // IA vs IA : attendre le bouton Lancer
     ia_lancee:      false,
 };
 
-// Seuil pour détecter victoire/défaite (doit matcher modele.py)
 const SEUIL_VICTOIRE = 500000;
 
-/* ================================================
-   INITIALISATION
-================================================ */
 
 document.addEventListener("DOMContentLoaded", async () => {
+    const params = new URLSearchParams(window.location.search);
+    const modeURL = params.get("mode");
+    const startURL = params.get("start");
+    const humainURL = params.get("humain");
+
+    if (modeURL === "situation") {
+        ETAT.mode = 3;
+    } else if (modeURL === "0" || modeURL === "1" || modeURL === "2") {
+        ETAT.mode = parseInt(modeURL);
+    }
+
+    if (startURL === "1" || startURL === "2") {
+        ETAT.couleur_depart = parseInt(startURL);
+    }
+
+    if (humainURL === "1" || humainURL === "2") {
+        ETAT.joueur_humain = parseInt(humainURL);
+    }
+
     await nouvellePartie();
+
+    if (ETAT.mode === 1 && ETAT.joueur_humain !== ETAT.couleur_depart && !ETAT.resultat) {
+        await pause(500);
+        const info = document.getElementById("info");
+        if (info) { info.innerHTML = "🧠 IA réfléchit..."; info.className = "info ia-thinking"; }
+        await pause(300);
+        await jouerIA();
+    }
 });
 
-/* ================================================
-   NOUVELLE PARTIE
-================================================ */
 
 async function nouvellePartie() {
     stopperTimerIA();
@@ -81,27 +98,30 @@ async function nouvellePartie() {
     mettreAJourUI();
 }
 
-/* ================================================
-   METTRE À JOUR L'UI
-================================================ */
 
 function mettreAJourUI() {
-    // Mode select
-    const modeSelect = document.getElementById("modeSelect");
-    if (modeSelect) modeSelect.value = ETAT.mode === 3 ? "" : String(ETAT.mode);
+    const btnMode2 = document.getElementById("btnMode2");
+    const btnMode1 = document.getElementById("btnMode1");
+    const btnMode0 = document.getElementById("btnMode0");
+    if (btnMode2) btnMode2.classList.toggle("actif", ETAT.mode === 2);
+    if (btnMode1) btnMode1.classList.toggle("actif", ETAT.mode === 1);
+    if (btnMode0) btnMode0.classList.toggle("actif", ETAT.mode === 0);
 
-    // Bouton situation
+    const modeSwitcher = document.querySelector(".mode-switcher");
+    if (modeSwitcher) modeSwitcher.style.display = "flex";
+
+    const undoRedoRow = document.getElementById("undoRedoRow");
+    if (undoRedoRow) undoRedoRow.style.display = ETAT.mode === 3 ? "none" : "flex";
+
     const btnSituation = document.getElementById("btnSituation");
     if (btnSituation) btnSituation.classList.toggle("actif", ETAT.mode === 3);
 
-    // Panneaux
     const zoneIA = document.getElementById("zoneIA");
     if (zoneIA) zoneIA.style.display = (ETAT.mode === 0 || ETAT.mode === 1) ? "block" : "none";
 
     const zoneSituation = document.getElementById("zoneSituation");
     if (zoneSituation) zoneSituation.style.display = ETAT.mode === 3 ? "block" : "none";
 
-    // Cacher le résultat d'analyse quand on quitte le mode situation
     if (ETAT.mode !== 3) {
         const zoneResultat = document.getElementById("resultatAnalyse");
         const zoneContainer = document.getElementById("zoneAnalyseResultat");
@@ -109,27 +129,22 @@ function mettreAJourUI() {
         if (zoneContainer) zoneContainer.style.display = "none";
     }
 
-    // Profondeurs
     const profRouge = document.getElementById("profondeurRouge");
     const profJaune = document.getElementById("profondeurJaune");
     if (profRouge) profRouge.value = String(ETAT.profondeur_rouge);
     if (profJaune) profJaune.value = String(ETAT.profondeur_jaune);
 
-    // Départ
     const departSelect = document.getElementById("departSelect");
     if (departSelect) departSelect.value = String(ETAT.couleur_depart);
 
-    // Pion éditeur
     mettreAJourBoutonsPion(ETAT.pion_editeur);
 
-    // Plateau
     if (ETAT.mode === 3) {
         afficherPlateauEditeur(ETAT.plateau);
     } else {
         afficherPlateau(ETAT.plateau);
     }
 
-    // Info
     const info = document.getElementById("info");
     if (info) {
         if (ETAT.resultat) {
@@ -148,19 +163,16 @@ function mettreAJourUI() {
         }
     }
 
-    // Bouton prédiction — visible dans tous les modes si partie pas finie
     const btnPred = document.getElementById("btnPrediction");
     if (btnPred) {
         btnPred.style.display = (!ETAT.resultat && ETAT.mode !== 3) ? "inline-block" : "none";
     }
 
-    // Bouton analyser — visible dans tous les modes si partie pas finie
     const btnAnalyse = document.getElementById("btnAnalyser");
     if (btnAnalyse) {
         btnAnalyse.style.display = (!ETAT.resultat && ETAT.mode !== 3) ? "inline-block" : "none";
     }
 
-    // Timer IA vs IA — seulement si lancée
     const btnLancerIA = document.getElementById("btnLancerIA");
     if (ETAT.mode === 0 && !ETAT.resultat) {
         if (btnLancerIA) btnLancerIA.style.display = ETAT.ia_lancee ? "none" : "inline-block";
@@ -175,15 +187,11 @@ function mettreAJourUI() {
         ETAT.en_train = false;
     }
 
-    // Sauvegarder si partie finie
     if (ETAT.resultat && !ETAT.partie_sauvegardee) {
         sauvegarderPartie();
     }
 }
 
-/* ================================================
-   AFFICHER PLATEAU NORMAL
-================================================ */
 
 function afficherPlateau(plateau) {
     if (!plateau) return;
@@ -211,9 +219,6 @@ function afficherPlateau(plateau) {
     });
 }
 
-/* ================================================
-   AFFICHER PLATEAU ÉDITEUR
-================================================ */
 
 function afficherPlateauEditeur(plateau) {
     if (!plateau) return;
@@ -236,15 +241,12 @@ function afficherPlateauEditeur(plateau) {
     });
 }
 
-/* ================================================
-   JOUER COUP HUMAIN
-================================================ */
 
 async function jouer(col) {
     if (ETAT.en_train || ETAT.resultat || ETAT.mode === 0 || ETAT.mode === 3) return;
 
     ETAT.en_train = true;
-    ETAT.redo_pile = [];  // Nouveau coup = vider la pile refaire
+    ETAT.redo_pile = [];
     desactiverPlateau();
     cacherConseil();
 
@@ -280,9 +282,6 @@ async function jouer(col) {
     activerPlateau();
 }
 
-/* ================================================
-   COUP IA
-================================================ */
 
 async function jouerIA() {
     if (ETAT.resultat) return;
@@ -308,9 +307,6 @@ async function jouerIA() {
     mettreAJourUI();
 }
 
-/* ================================================
-   TIMER IA VS IA
-================================================ */
 
 function demarrerTimerIA() {
     if (ETAT.timer_ia !== null) return;
@@ -336,19 +332,16 @@ function stopperTimerIA() {
     }
 }
 
-/* ================================================
-   ANNULER / REFAIRE
-================================================ */
 
 async function annulerCoup() {
     if (ETAT.en_train) return;
+    if (ETAT.mode === 3) return;
     if (!ETAT.historique || ETAT.historique.length === 0) return;
 
     stopperTimerIA();
     ETAT.en_train = false;
     cacherConseil();
 
-    // Sauvegarder le coup annulé dans la pile redo
     const dernierCoup = ETAT.historique[ETAT.historique.length - 1];
     ETAT.redo_pile.push(dernierCoup);
 
@@ -369,15 +362,15 @@ async function annulerCoup() {
 
 async function refaireCoup() {
     if (ETAT.en_train) return;
+    if (ETAT.mode === 3) return;
     if (!ETAT.redo_pile || ETAT.redo_pile.length === 0) return;
     if (ETAT.resultat) return;
 
     stopperTimerIA();
     cacherConseil();
 
-    // Récupérer le coup à refaire
     const coup = ETAT.redo_pile.pop();
-    const col = coup[1];  // [lig, col, joueur]
+    const col = coup[1];
 
     const res = await fetch("/api/jouer", {
         method:  "POST",
@@ -396,22 +389,47 @@ async function refaireCoup() {
     mettreAJourUI();
 }
 
-/* ================================================
-   CHANGER MODE
-================================================ */
 
-async function changerMode() {
-    const modeStr = document.getElementById("modeSelect").value;
-    const mode    = parseInt(modeStr);
+async function switcherMode(mode) {
     if (isNaN(mode)) return;
+
+    const venaitDeSituation = (ETAT.mode === 3);
+
+    if (mode === ETAT.mode && !venaitDeSituation) return;
 
     stopperTimerIA();
     ETAT.en_train = false;
     ETAT.mode     = mode;
     ETAT.ia_lancee = false;
+    ETAT.resultat = null;
     cacherConseil();
 
-    mettreAJourUI();
+    if (venaitDeSituation) {
+        const joueurSelect = document.getElementById("joueurAnalyse");
+        const joueur = joueurSelect ? parseInt(joueurSelect.value) : 1;
+
+        ETAT.joueur_courant = joueur;
+        ETAT.partie_sauvegardee = false;
+        ETAT.historique = [];
+
+        if (mode === 1) {
+            ETAT.joueur_humain = joueur;
+        }
+
+        mettreAJourUI();
+
+        const nomMode = mode === 0 ? "IA vs IA" : mode === 1 ? "Humain vs IA" : "2 Joueurs";
+        const emoji = joueur === 1 ? "🔴" : "🟡";
+        const nomJoueur = joueur === 1 ? "Rouge" : "Jaune";
+
+        const info = document.getElementById("info");
+        if (info) {
+            info.innerHTML = `▶ Partie lancée en ${nomMode} — ${emoji} ${nomJoueur} commence`;
+            info.className = "info";
+        }
+    } else {
+        mettreAJourUI();
+    }
 }
 
 function lancerIAvIA() {
@@ -426,35 +444,24 @@ async function activerSituation() {
 
     ETAT.mode = ETAT.mode === 3 ? 2 : 3;
 
-    const modeSelect = document.getElementById("modeSelect");
-    if (modeSelect) modeSelect.value = ETAT.mode === 3 ? "" : String(ETAT.mode);
-
     mettreAJourUI();
 }
 
-/* ================================================
-   CHANGER DÉPART
-================================================ */
 
 async function changerDepart() {
     const couleur = parseInt(document.getElementById("departSelect").value);
     ETAT.couleur_depart = couleur;
     ETAT.joueur_humain = couleur;
 
-    // Si plateau vide → nouvelle partie
     const estVide = ETAT.plateau.every(row => row.every(cell => cell === 0));
     if (estVide) {
         await nouvellePartie();
     } else {
-        // Plateau chargé → changer le joueur courant
         ETAT.joueur_courant = couleur;
         mettreAJourUI();
     }
 }
 
-/* ================================================
-   CHANGER PROFONDEUR
-================================================ */
 
 async function changerProfondeur(joueur) {
     const id   = joueur === "rouge" ? "profondeurRouge" : "profondeurJaune";
@@ -474,9 +481,6 @@ function appliquerDelaiIA() {
     if (ETAT.mode === 0 && !ETAT.resultat) demarrerTimerIA();
 }
 
-/* ================================================
-   CHARGER DEPUIS FICHIER (tous les modes)
-================================================ */
 
 function chargerDepuisFichier() {
     const input = document.getElementById("chargerFichier");
@@ -493,7 +497,6 @@ function chargerDepuisFichier() {
         return;
     }
 
-    // Reconstruire le plateau ET l'historique
     const lignes = ETAT.lignes;
     const colonnes = ETAT.colonnes;
     let plateau = Array.from({ length: lignes }, () => new Array(colonnes).fill(0));
@@ -520,14 +523,11 @@ function chargerDepuisFichier() {
         }
     }
 
-    // Appliquer
     ETAT.plateau = plateau;
     ETAT.joueur_courant = joueur;
     ETAT.resultat = null;
     ETAT.historique = historique;
     ETAT.partie_sauvegardee = false;
-
-    // Garder le mode actuel (ne pas basculer)
 
     const nomJoueur = joueur === 1 ? "Rouge" : "Jaune";
     const emoji = joueur === 1 ? "🔴" : "🟡";
@@ -538,7 +538,6 @@ function chargerDepuisFichier() {
         info.className = "info";
     }
 
-    // Mettre à jour le sélecteur joueur analyse
     const joueurSelect = document.getElementById("joueurAnalyse");
     if (joueurSelect) joueurSelect.value = String(joueur);
 
@@ -546,11 +545,7 @@ function chargerDepuisFichier() {
     mettreAJourUI();
 }
 
-/* ================================================
-   MODE SITUATION
-================================================ */
 
-/* ── Importer séquence depuis fichier .txt ── */
 async function importerSequence() {
     const input = document.getElementById("importFichier");
     const infoDiv = document.getElementById("importInfo");
@@ -559,8 +554,7 @@ async function importerSequence() {
 
     const fichier = input.files[0];
 
-    // La séquence est dans le NOM du fichier (ex: 554433221.txt)
-    const nomFichier = fichier.name.replace(/\.[^.]+$/, ""); // enlever l'extension
+    const nomFichier = fichier.name.replace(/\.[^.]+$/, "");
     const coups = nomFichier.replace(/[^0-9]/g, "");
 
     if (coups.length === 0) {
@@ -568,7 +562,6 @@ async function importerSequence() {
         return;
     }
 
-    // Reconstruire le plateau coup par coup
     const lignes = ETAT.lignes;
     const colonnes = ETAT.colonnes;
     let plateau = Array.from({ length: lignes }, () => new Array(colonnes).fill(0));
@@ -577,7 +570,7 @@ async function importerSequence() {
     let historique = [];
 
     for (const ch of coups) {
-        const col = parseInt(ch) - 1;  // fichier = 1-indexé, plateau = 0-indexé
+        const col = parseInt(ch) - 1;
         if (col < 0 || col >= colonnes) continue;
 
         let placed = false;
@@ -656,37 +649,25 @@ async function changerPionEditeur(pion) {
 function mettreAJourBoutonsPion(pion) {
     const btnRouge   = document.getElementById("btnPionRouge");
     const btnJaune   = document.getElementById("btnPionJaune");
-    const btnEffacer = document.getElementById("btnPionEffacer");
     if (btnRouge)   btnRouge.classList.toggle("actif", pion === 1);
     if (btnJaune)   btnJaune.classList.toggle("actif", pion === 2);
-    if (btnEffacer) btnEffacer.classList.toggle("actif", pion === 0);
 }
 
-/* ── Continuer la partie depuis la position actuelle ── */
 async function continuerPartie(mode) {
-    // Récupérer qui joue depuis le sélecteur d'analyse
     const joueurSelect = document.getElementById("joueurAnalyse");
     const joueur = joueurSelect ? parseInt(joueurSelect.value) : ETAT.joueur_courant;
 
-    // Garder le plateau actuel, changer le mode
     ETAT.joueur_courant = joueur;
     ETAT.mode = mode;
     ETAT.resultat = null;
     ETAT.en_train = false;
     ETAT.partie_sauvegardee = false;
 
-    // Reconstruire l'historique depuis le plateau actuel
-    // (on ne peut pas le reconstituer exactement, mais on vide pour repartir propre)
     ETAT.historique = [];
 
-    // En mode Humain vs IA, le joueur humain est celui qui joue en premier
     if (mode === 1) {
         ETAT.joueur_humain = joueur;
     }
-
-    // Mettre à jour le sélecteur de mode
-    const modeSelect = document.getElementById("modeSelect");
-    if (modeSelect) modeSelect.value = String(mode);
 
     cacherConseil();
     mettreAJourUI();
@@ -718,7 +699,6 @@ async function situationEffacer() {
     if (zoneResultat) zoneResultat.innerHTML = "";
     if (zoneContainer) zoneContainer.style.display = "none";
 
-    // Reset le file input
     const fi = document.getElementById("importFichier");
     if (fi) fi.value = "";
     const ii = document.getElementById("importInfo");
@@ -772,20 +752,13 @@ async function situationAnalyser() {
     if (data.meilleur_col !== undefined) surlignerColonne(data.meilleur_col);
 }
 
-async function changerProfondeurAnalyse() {
-    // Rien à faire côté serveur, juste côté client
-}
+async function changerProfondeurAnalyse() {}
 
-/* ================================================
-   ANALYSER DEPUIS LE JEU (tous les modes)
-================================================ */
 
 async function analyserDepuisJeu() {
     if (ETAT.resultat) return;
 
-    // Afficher la modale de profondeur
     return new Promise((resolve) => {
-        // Créer la modale
         const overlay = document.createElement("div");
         overlay.id = "modalProfondeur";
         overlay.style.cssText = "position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:2000;display:flex;align-items:center;justify-content:center;";
@@ -833,7 +806,6 @@ async function analyserDepuisJeu() {
             const joueur_analyse = ETAT.joueur_courant;
             const info = document.getElementById("info");
 
-            // Créer la barre de progression
             const barreDiv = document.createElement("div");
             barreDiv.id = "barreProgression";
             barreDiv.style.cssText = "width:80%;max-width:500px;margin:10px auto;text-align:center;";
@@ -853,7 +825,6 @@ async function analyserDepuisJeu() {
                 info.className = "info ia-thinking";
             }
 
-            // Appels progressifs : profondeur 2, 4, 6... jusqu'à profondeurMax
             const etapes = [];
             for (let d = 2; d <= profondeurMax; d += 2) etapes.push(d);
             if (etapes.length === 0) etapes.push(profondeurMax);
@@ -874,13 +845,11 @@ async function analyserDepuisJeu() {
                 });
                 dernierResultat = await res.json();
 
-                // Mettre à jour la barre
                 const barreFill = document.getElementById("barreFill");
                 const barreTexte = document.getElementById("barreTexte");
                 if (barreFill) barreFill.style.width = pct + "%";
                 if (barreTexte) barreTexte.textContent = pct + "%";
 
-                // Si victoire forcée trouvée, on arrête
                 if (dernierResultat.nb_coups !== undefined && dernierResultat.nb_coups !== null) {
                     if (barreFill) barreFill.style.width = "100%";
                     if (barreTexte) barreTexte.textContent = "100% — Victoire trouvée !";
@@ -889,10 +858,8 @@ async function analyserDepuisJeu() {
                 }
             }
 
-            // Petit délai pour voir le 100%
             await pause(500);
 
-            // Supprimer la barre
             const barre = document.getElementById("barreProgression");
             if (barre) barre.remove();
 
@@ -935,9 +902,6 @@ async function analyserDepuisJeu() {
     });
 }
 
-/* ================================================
-   CONSEIL IA (SEUILS CORRIGÉS)
-================================================ */
 
 async function afficherConseil() {
     const res  = await fetch("/api/conseil", {
@@ -972,7 +936,6 @@ function afficherScoresColonnes(scores, meilleurCol) {
         const scoreCol    = scores[col];
         const isMeilleur  = col === meilleurCol;
 
-        // SEUILS CORRIGÉS pour SCORE_VICTOIRE = 1_000_000
         let couleur = "#60a5fa";
         if (scoreCol === undefined)              couleur = "#475569";
         else if (scoreCol > SEUIL_VICTOIRE)      couleur = "#22c55e";
@@ -1022,9 +985,6 @@ function cacherConseil() {
     if (fleche) fleche.remove();
 }
 
-/* ================================================
-   SURLIGNER COLONNE
-================================================ */
 
 function surlignerColonne(col) {
     const cases = document.querySelectorAll(".case");
@@ -1040,9 +1000,6 @@ function surlignerColonne(col) {
     }, 3000);
 }
 
-/* ================================================
-   SAUVEGARDER PARTIE
-================================================ */
 
 async function sauvegarderPartie() {
     if (ETAT.partie_sauvegardee) return;
@@ -1056,9 +1013,6 @@ async function sauvegarderPartie() {
     ETAT.partie_sauvegardee = true;
 }
 
-/* ================================================
-   HISTORIQUE
-================================================ */
 
 async function ouvrirHistorique() {
     document.getElementById("modalHistorique").style.display = "block";
@@ -1090,9 +1044,6 @@ function fermerHistorique() {
     document.getElementById("modalHistorique").style.display = "none";
 }
 
-/* ================================================
-   CHARGER PARTIE
-================================================ */
 
 async function chargerPartie(id, coups) {
     fermerHistorique();
@@ -1119,9 +1070,6 @@ async function chargerPartie(id, coups) {
     afficherControlesReplay();
 }
 
-/* ================================================
-   REPLAY
-================================================ */
 
 function afficherReplay() {
     const lignes   = ETAT.lignes;
@@ -1175,9 +1123,6 @@ function quitterReplay() {
     mettreAJourUI();
 }
 
-/* ================================================
-   HELPER : état à envoyer au serveur
-================================================ */
 
 function getEtatServeur() {
     return {
@@ -1191,9 +1136,6 @@ function getEtatServeur() {
     };
 }
 
-/* ================================================
-   UTILITAIRES
-================================================ */
 
 function pause(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
