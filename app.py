@@ -10,12 +10,7 @@ init_db.init_db()
 
 app = Flask(__name__)
 
-# =========================================================
-# HELPERS
-# =========================================================
-
 def modele_depuis_data(data):
-    """Reconstruit un modèle depuis les données envoyées par le client."""
     m = Puissance4Modele.__new__(Puissance4Modele)
     m.lignes         = data.get("lignes", 9)
     m.colonnes       = data.get("colonnes", 9)
@@ -30,7 +25,6 @@ def modele_depuis_data(data):
     else:
         m.plateau = m.creer_plateau()
 
-    # Initialiser Zobrist pour la table de transposition
     m._init_zobrist()
     m._hash_courant = m._calculer_hash_complet()
     m.table_transposition = {}
@@ -39,10 +33,6 @@ def modele_depuis_data(data):
 
 
 def decoder_score(score, joueur_courant):
-    """
-    Décode le score minimax en (gagnant, nb_coups).
-    Convention : SCORE_VICTOIRE = 1_000_000
-    """
     SV = Puissance4Modele.SCORE_VICTOIRE
 
     if score > SV // 2:
@@ -60,17 +50,21 @@ def decoder_score(score, joueur_courant):
 
     return None, None
 
-# =========================================================
-# PAGE PRINCIPALE
-# =========================================================
 
 @app.route("/")
 def accueil():
+    return render_template("accueil.html")
+
+
+@app.route("/setup")
+def setup():
+    return render_template("setup.html")
+
+
+@app.route("/jeu")
+def jeu():
     return render_template("index.html")
 
-# =========================================================
-# NOUVELLE PARTIE
-# =========================================================
 
 @app.route("/api/nouvelle", methods=["POST"])
 def nouvelle():
@@ -95,9 +89,6 @@ def nouvelle():
         "resultat":       None,
     })
 
-# =========================================================
-# JOUER COUP HUMAIN
-# =========================================================
 
 @app.route("/api/jouer", methods=["POST"])
 def jouer():
@@ -129,9 +120,6 @@ def jouer():
         "resultat":       modele.resultat,
     })
 
-# =========================================================
-# COUP IA
-# =========================================================
 
 @app.route("/api/ia_step", methods=["POST"])
 def ia_step():
@@ -175,9 +163,6 @@ def ia_step():
         "resultat":       modele.resultat,
     })
 
-# =========================================================
-# ANNULER COUP
-# =========================================================
 
 @app.route("/api/annuler", methods=["POST"])
 def annuler():
@@ -194,9 +179,6 @@ def annuler():
         "resultat":       modele.resultat,
     })
 
-# =========================================================
-# CONSEIL IA
-# =========================================================
 
 @app.route("/api/conseil", methods=["POST"])
 def conseil():
@@ -241,9 +223,6 @@ def conseil():
         "nb_coups":     nb_coups,
     })
 
-# =========================================================
-# MODE SITUATION — PLACER UN PION
-# =========================================================
 
 @app.route("/api/situation/placer", methods=["POST"])
 def situation_placer():
@@ -266,9 +245,6 @@ def situation_placer():
         "victoire_jaune": victoire_jaune,
     })
 
-# =========================================================
-# MODE SITUATION — ANALYSER (CORRIGÉ)
-# =========================================================
 
 @app.route("/api/situation/analyser", methods=["POST"])
 def situation_analyser():
@@ -334,9 +310,6 @@ def situation_analyser():
         "nb_coups":     nb_coups,
     })
 
-# =========================================================
-# SAUVEGARDER PARTIE
-# =========================================================
 
 @app.route("/api/sauvegarder", methods=["POST"])
 def sauvegarder():
@@ -361,9 +334,6 @@ def sauvegarder():
     except Exception as e:
         return jsonify({"status": "erreur", "message": str(e)})
 
-# =========================================================
-# HISTORIQUE
-# =========================================================
 
 @app.route("/api/historique")
 def historique():
@@ -380,9 +350,6 @@ def historique():
         })
     return jsonify(data)
 
-# =========================================================
-# CHARGER PARTIE
-# =========================================================
 
 @app.route("/api/charger/<int:partie_id>")
 def charger_partie(partie_id):
@@ -404,9 +371,6 @@ def charger_partie(partie_id):
         "colonnes":       modele.colonnes,
     })
 
-# =========================================================
-# LANCEMENT
-# =========================================================
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

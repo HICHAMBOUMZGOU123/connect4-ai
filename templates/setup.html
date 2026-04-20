@@ -1,10 +1,304 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
+    <meta charset="utf-8">
+    <title>Configuration - Puissance 4</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-$END$
+
+<body class="setup-body">
+
+    <a href="/" class="btn-retour" title="Retour à l'accueil">
+        <span>←</span> Accueil
+    </a>
+
+    <div class="setup-container">
+
+        <div class="setup-header">
+            <h1 class="title-game">Configuration <span>de la partie</span></h1>
+            <p class="setup-mode-label" id="modeLabel">Mode</p>
+        </div>
+
+        <div class="setup-content">
+
+            <div class="setup-players" id="setupPlayers">
+                <div class="player-card" id="playerCard1">
+                    <div class="player-label" id="playerLabel1">JOUEUR 1</div>
+                    <div class="player-pion" id="playerPion1"></div>
+                    <div class="player-color-name" id="playerColorName1">Rouge</div>
+                </div>
+
+                <button class="btn-swap" id="btnSwap" onclick="swapColors()" title="Échanger les couleurs">
+                    🔄
+                </button>
+
+                <div class="player-card" id="playerCard2">
+                    <div class="player-label" id="playerLabel2">JOUEUR 2</div>
+                    <div class="player-pion" id="playerPion2"></div>
+                    <div class="player-color-name" id="playerColorName2">Jaune</div>
+                </div>
+            </div>
+
+            <div class="setup-starter">
+                <div class="setup-section-label">QUI COMMENCE ?</div>
+                <div class="starter-buttons">
+                    <button class="starter-btn actif" id="starterBtn1" onclick="choisirStarter(1)">
+                        <span id="starterEmoji1">🔴</span> <span id="starterName1">Joueur 1</span>
+                    </button>
+                    <button class="starter-btn" id="starterBtn2" onclick="choisirStarter(2)">
+                        <span id="starterEmoji2">🟡</span> <span id="starterName2">Joueur 2</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Niveau de difficulte (Humain vs IA) ── -->
+            <div class="setup-difficulty" id="difficultyHumainIA" style="display:none;">
+                <div class="setup-section-label">NIVEAU DE DIFFICULTÉ DE L'IA</div>
+                <div class="difficulty-buttons" id="difficultyButtons1">
+                    <button class="diff-btn" data-prof="2" onclick="choisirDifficulte(1, 2)">
+                        <div class="diff-emoji">🌱</div>
+                        <div class="diff-label">Facile</div>
+                    </button>
+                    <button class="diff-btn actif" data-prof="4" onclick="choisirDifficulte(1, 4)">
+                        <div class="diff-emoji">🎯</div>
+                        <div class="diff-label">Moyen</div>
+                    </button>
+                    <button class="diff-btn" data-prof="6" onclick="choisirDifficulte(1, 6)">
+                        <div class="diff-emoji">🔥</div>
+                        <div class="diff-label">Difficile</div>
+                    </button>
+                    <button class="diff-btn" data-prof="8" onclick="choisirDifficulte(1, 8)">
+                        <div class="diff-emoji">🧠</div>
+                        <div class="diff-label">Expert</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- ── Niveaux des 2 IA (IA vs IA) ── -->
+            <div class="setup-difficulty-dual" id="difficultyIAvsIA" style="display:none;">
+                <div class="difficulty-side">
+                    <div class="setup-section-label">NIVEAU IA ROUGE</div>
+                    <div class="difficulty-buttons" id="difficultyButtonsRouge">
+                        <button class="diff-btn" data-prof="2" onclick="choisirDifficulteIA('rouge', 2)">
+                            <div class="diff-emoji">🌱</div>
+                            <div class="diff-label">Facile</div>
+                        </button>
+                        <button class="diff-btn actif" data-prof="4" onclick="choisirDifficulteIA('rouge', 4)">
+                            <div class="diff-emoji">🎯</div>
+                            <div class="diff-label">Moyen</div>
+                        </button>
+                        <button class="diff-btn" data-prof="6" onclick="choisirDifficulteIA('rouge', 6)">
+                            <div class="diff-emoji">🔥</div>
+                            <div class="diff-label">Difficile</div>
+                        </button>
+                        <button class="diff-btn" data-prof="8" onclick="choisirDifficulteIA('rouge', 8)">
+                            <div class="diff-emoji">🧠</div>
+                            <div class="diff-label">Expert</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="difficulty-side">
+                    <div class="setup-section-label">NIVEAU IA JAUNE</div>
+                    <div class="difficulty-buttons" id="difficultyButtonsJaune">
+                        <button class="diff-btn" data-prof="2" onclick="choisirDifficulteIA('jaune', 2)">
+                            <div class="diff-emoji">🌱</div>
+                            <div class="diff-label">Facile</div>
+                        </button>
+                        <button class="diff-btn actif" data-prof="4" onclick="choisirDifficulteIA('jaune', 4)">
+                            <div class="diff-emoji">🎯</div>
+                            <div class="diff-label">Moyen</div>
+                        </button>
+                        <button class="diff-btn" data-prof="6" onclick="choisirDifficulteIA('jaune', 6)">
+                            <div class="diff-emoji">🔥</div>
+                            <div class="diff-label">Difficile</div>
+                        </button>
+                        <button class="diff-btn" data-prof="8" onclick="choisirDifficulteIA('jaune', 8)">
+                            <div class="diff-emoji">🧠</div>
+                            <div class="diff-label">Expert</div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Vitesse pour IA vs IA ── -->
+            <div class="setup-difficulty" id="vitesseIAvsIA" style="display:none;">
+                <div class="setup-section-label">VITESSE D'AFFICHAGE</div>
+                <div class="difficulty-buttons" id="vitesseButtons">
+                    <button class="diff-btn" data-delai="200" onclick="choisirVitesse(200)">
+                        <div class="diff-emoji">⚡</div>
+                        <div class="diff-label">Très rapide</div>
+                    </button>
+                    <button class="diff-btn" data-delai="400" onclick="choisirVitesse(400)">
+                        <div class="diff-emoji">🏃</div>
+                        <div class="diff-label">Rapide</div>
+                    </button>
+                    <button class="diff-btn actif" data-delai="800" onclick="choisirVitesse(800)">
+                        <div class="diff-emoji">🚶</div>
+                        <div class="diff-label">Normal</div>
+                    </button>
+                    <button class="diff-btn" data-delai="1500" onclick="choisirVitesse(1500)">
+                        <div class="diff-emoji">🐢</div>
+                        <div class="diff-label">Lent</div>
+                    </button>
+                </div>
+            </div>
+
+            <div class="setup-start">
+                <button class="btn-commencer" onclick="commencerPartie()">
+                    ▶  Commencer la partie
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        let MODE = 2;
+        let JOUEUR1_COULEUR = 1;
+        let JOUEUR2_COULEUR = 2;
+        let STARTER = 1;
+
+        let DIFFICULTE_IA = 4;
+        let DIFFICULTE_ROUGE = 4;
+        let DIFFICULTE_JAUNE = 4;
+        let VITESSE_IA = 800;
+
+        window.addEventListener("load", function() {
+            const params = new URLSearchParams(window.location.search);
+            const modeParam = params.get("mode");
+            MODE = parseInt(modeParam);
+            if (isNaN(MODE) || MODE < 0 || MODE > 2) MODE = 2;
+
+            configurerInterface();
+            mettreAJour();
+        });
+
+        function configurerInterface() {
+            const label = document.getElementById("modeLabel");
+            const setupPlayers = document.getElementById("setupPlayers");
+            const label1 = document.getElementById("playerLabel1");
+            const label2 = document.getElementById("playerLabel2");
+
+            if (MODE === 2) {
+                label.textContent = "Mode : 2 Joueurs";
+                label1.textContent = "JOUEUR 1";
+                label2.textContent = "JOUEUR 2";
+            } else if (MODE === 1) {
+                label.textContent = "Mode : Humain vs IA";
+                label1.textContent = "TOI";
+                label2.textContent = "IA";
+                document.getElementById("difficultyHumainIA").style.display = "block";
+            } else if (MODE === 0) {
+                label.textContent = "Mode : IA vs IA";
+                label1.textContent = "IA ROUGE";
+                label2.textContent = "IA JAUNE";
+                const btnSwap = document.getElementById("btnSwap");
+                if (btnSwap) btnSwap.style.display = "none";
+                setupPlayers.classList.add("ia-vs-ia");
+                document.getElementById("difficultyIAvsIA").style.display = "flex";
+                document.getElementById("vitesseIAvsIA").style.display = "block";
+            }
+        }
+
+        function mettreAJour() {
+            const pion1 = document.getElementById("playerPion1");
+            const pion2 = document.getElementById("playerPion2");
+            const name1 = document.getElementById("playerColorName1");
+            const name2 = document.getElementById("playerColorName2");
+            const card1 = document.getElementById("playerCard1");
+            const card2 = document.getElementById("playerCard2");
+
+            pion1.className = "player-pion " + (JOUEUR1_COULEUR === 1 ? "pion-rouge" : "pion-jaune");
+            pion2.className = "player-pion " + (JOUEUR2_COULEUR === 1 ? "pion-rouge" : "pion-jaune");
+            name1.textContent = JOUEUR1_COULEUR === 1 ? "Rouge" : "Jaune";
+            name2.textContent = JOUEUR2_COULEUR === 1 ? "Rouge" : "Jaune";
+
+            card1.className = "player-card " + (JOUEUR1_COULEUR === 1 ? "card-joueur-rouge" : "card-joueur-jaune");
+            card2.className = "player-card " + (JOUEUR2_COULEUR === 1 ? "card-joueur-rouge" : "card-joueur-jaune");
+
+            const emoji1 = document.getElementById("starterEmoji1");
+            const emoji2 = document.getElementById("starterEmoji2");
+            const nameS1 = document.getElementById("starterName1");
+            const nameS2 = document.getElementById("starterName2");
+
+            emoji1.textContent = JOUEUR1_COULEUR === 1 ? "🔴" : "🟡";
+            emoji2.textContent = JOUEUR2_COULEUR === 1 ? "🔴" : "🟡";
+
+            if (MODE === 2) {
+                nameS1.textContent = "Joueur 1";
+                nameS2.textContent = "Joueur 2";
+            } else if (MODE === 1) {
+                nameS1.textContent = "Toi";
+                nameS2.textContent = "IA";
+            } else if (MODE === 0) {
+                nameS1.textContent = "IA Rouge";
+                nameS2.textContent = "IA Jaune";
+            }
+
+            document.getElementById("starterBtn1").classList.toggle("actif", STARTER === 1);
+            document.getElementById("starterBtn2").classList.toggle("actif", STARTER === 2);
+        }
+
+        function swapColors() {
+            const temp = JOUEUR1_COULEUR;
+            JOUEUR1_COULEUR = JOUEUR2_COULEUR;
+            JOUEUR2_COULEUR = temp;
+            mettreAJour();
+        }
+
+        function choisirStarter(n) {
+            STARTER = n;
+            mettreAJour();
+        }
+
+        function choisirDifficulte(quel, prof) {
+            DIFFICULTE_IA = prof;
+            const boutons = document.querySelectorAll("#difficultyButtons1 .diff-btn");
+            boutons.forEach(b => {
+                b.classList.toggle("actif", parseInt(b.dataset.prof) === prof);
+            });
+        }
+
+        function choisirDifficulteIA(couleur, prof) {
+            if (couleur === "rouge") {
+                DIFFICULTE_ROUGE = prof;
+                const boutons = document.querySelectorAll("#difficultyButtonsRouge .diff-btn");
+                boutons.forEach(b => {
+                    b.classList.toggle("actif", parseInt(b.dataset.prof) === prof);
+                });
+            } else {
+                DIFFICULTE_JAUNE = prof;
+                const boutons = document.querySelectorAll("#difficultyButtonsJaune .diff-btn");
+                boutons.forEach(b => {
+                    b.classList.toggle("actif", parseInt(b.dataset.prof) === prof);
+                });
+            }
+        }
+
+        function choisirVitesse(delai) {
+            VITESSE_IA = delai;
+            const boutons = document.querySelectorAll("#vitesseButtons .diff-btn");
+            boutons.forEach(b => {
+                b.classList.toggle("actif", parseInt(b.dataset.delai) === delai);
+            });
+        }
+
+        function commencerPartie() {
+            const couleurDepart = STARTER === 1 ? JOUEUR1_COULEUR : JOUEUR2_COULEUR;
+            const joueurHumain = MODE === 1 ? JOUEUR1_COULEUR : 0;
+            let url = `/jeu?mode=${MODE}&start=${couleurDepart}&humain=${joueurHumain}`;
+
+            if (MODE === 1) {
+                url += `&prof=${DIFFICULTE_IA}`;
+            } else if (MODE === 0) {
+                url += `&profR=${DIFFICULTE_ROUGE}&profJ=${DIFFICULTE_JAUNE}&delai=${VITESSE_IA}`;
+            }
+
+            window.location.href = url;
+        }
+    </script>
+
 </body>
 </html>

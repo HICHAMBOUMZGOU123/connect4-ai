@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <title>HichamDacine - Puissance 4</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="accueil-body">
+
+    <div class="accueil-container">
+
+        <div class="accueil-header">
+            <h1 class="title-game">Puissance <span>4</span></h1>
+            <div class="site-signature">by HichamDacine & TensorFlow</div>
+            <p class="accueil-subtitle">Choisissez votre mode de jeu</p>
+        </div>
+
+        <div class="accueil-cards">
+
+            <a href="/setup?mode=2" class="accueil-card card-bleu">
+                <div class="card-icon">🎮</div>
+                <h3 class="card-title">2 Joueurs</h3>
+                <p class="card-desc">Jouez à deux sur le même appareil</p>
+            </a>
+
+            <a href="/setup?mode=1" class="accueil-card card-violet">
+                <div class="card-icon">🤖</div>
+                <h3 class="card-title">Humain vs IA</h3>
+                <p class="card-desc">Défiez l'IA Minimax avec profondeur ajustable</p>
+            </a>
+
+            <a href="/setup?mode=0" class="accueil-card card-rose">
+                <div class="card-icon">⚡</div>
+                <h3 class="card-title">IA vs IA</h3>
+                <p class="card-desc">Regardez deux IA s'affronter en direct</p>
+            </a>
+
+            <a href="/jeu?mode=situation" class="accueil-card card-jaune">
+                <div class="card-icon">🧠</div>
+                <h3 class="card-title">Mode Situation</h3>
+                <p class="card-desc">Analysez une position et trouvez le meilleur coup</p>
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+</html>

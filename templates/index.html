@@ -22,6 +22,21 @@
         <option value="2">Jaune commence</option>
     </select>
 
+    <!-- selects caches utilises par game.js (compatibilite) -->
+    <select id="strategieRouge" onchange="changerStrategie()" style="display:none;">
+        <option value="minimax" selected>Minimax</option>
+    </select>
+    <select id="strategieJaune" onchange="changerStrategie()" style="display:none;">
+        <option value="minimax" selected>Minimax</option>
+    </select>
+    <select id="profondeurRouge" onchange="changerProfondeur('rouge')" style="display:none;">
+        <option value="4" selected>4</option>
+    </select>
+    <select id="profondeurJaune" onchange="changerProfondeur('jaune')" style="display:none;">
+        <option value="4" selected>4</option>
+    </select>
+    <input id="delaiIA" type="hidden" value="600">
+
     <div class="game-layout">
 
         <!-- ── BARRE DE BOUTONS À GAUCHE ── -->
@@ -80,59 +95,8 @@
             <div id="zoneConseil" style="display:none;"></div>
         </div>
 
-        <!-- ── Panneau DROITE (IA / Situation / Analyse) ── -->
+        <!-- ── Panneau DROITE (Mode Situation / Resultat analyse) ── -->
         <div class="right-panel">
-
-            <div id="zoneIA" class="ia-panel" style="display:none;">
-                <h3>Réglages IA</h3>
-
-                <div class="ia-block">
-                    <strong style="color:#e74c3c;">Joueur Rouge</strong>
-                    <label>Stratégie</label>
-                    <select id="strategieRouge" onchange="changerStrategie()">
-                        <option value="aleatoire">Aléatoire</option>
-                        <option value="minimax" selected>Minimax</option>
-                    </select>
-                    <label>Profondeur</label>
-                    <select id="profondeurRouge" onchange="changerProfondeur('rouge')">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4" selected>4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="8">8</option>
-                        <option value="10">10</option>
-                    </select>
-                </div>
-
-                <div class="ia-block">
-                    <strong style="color:#f1c40f;">Joueur Jaune</strong>
-                    <label>Stratégie</label>
-                    <select id="strategieJaune" onchange="changerStrategie()">
-                        <option value="aleatoire">Aléatoire</option>
-                        <option value="minimax" selected>Minimax</option>
-                    </select>
-                    <label>Profondeur</label>
-                    <select id="profondeurJaune" onchange="changerProfondeur('jaune')">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4" selected>4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="8">8</option>
-                        <option value="10">10</option>
-                    </select>
-                </div>
-
-                <div class="ia-block">
-                    <strong>Timing IA vs IA</strong>
-                    <label>Délai (ms)</label>
-                    <input id="delaiIA" type="number" value="600" min="50" step="50">
-                    <button class="btn-valider" onclick="appliquerDelaiIA()">Appliquer</button>
-                </div>
-            </div>
 
             <div id="zoneSituation" class="ia-panel" style="display:none;">
                 <h3>🧠 Mode Situation</h3>

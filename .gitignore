@@ -17,6 +17,7 @@ env/
 
 # MODELES IA
 *.pt
+*.npz
 *.pth
 *.h5
 *.pkl

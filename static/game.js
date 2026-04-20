@@ -41,6 +41,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const modeURL = params.get("mode");
     const startURL = params.get("start");
     const humainURL = params.get("humain");
+    const profURL = params.get("prof");
+    const profRURL = params.get("profR");
+    const profJURL = params.get("profJ");
+    const delaiURL = params.get("delai");
 
     if (modeURL === "situation") {
         ETAT.mode = 3;
@@ -54,6 +58,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (humainURL === "1" || humainURL === "2") {
         ETAT.joueur_humain = parseInt(humainURL);
+    }
+
+    if (profURL && !isNaN(parseInt(profURL))) {
+        const prof = parseInt(profURL);
+        if (ETAT.joueur_humain === 1) {
+            ETAT.profondeur_jaune = prof;
+        } else {
+            ETAT.profondeur_rouge = prof;
+        }
+    }
+
+    if (profRURL && !isNaN(parseInt(profRURL))) {
+        ETAT.profondeur_rouge = parseInt(profRURL);
+    }
+    if (profJURL && !isNaN(parseInt(profJURL))) {
+        ETAT.profondeur_jaune = parseInt(profJURL);
+    }
+
+    if (delaiURL && !isNaN(parseInt(delaiURL))) {
+        ETAT.delai_ia = parseInt(delaiURL);
     }
 
     await nouvellePartie();
@@ -115,9 +139,6 @@ function mettreAJourUI() {
 
     const btnSituation = document.getElementById("btnSituation");
     if (btnSituation) btnSituation.classList.toggle("actif", ETAT.mode === 3);
-
-    const zoneIA = document.getElementById("zoneIA");
-    if (zoneIA) zoneIA.style.display = (ETAT.mode === 0 || ETAT.mode === 1) ? "block" : "none";
 
     const zoneSituation = document.getElementById("zoneSituation");
     if (zoneSituation) zoneSituation.style.display = ETAT.mode === 3 ? "block" : "none";
@@ -465,18 +486,23 @@ async function changerDepart() {
 
 async function changerProfondeur(joueur) {
     const id   = joueur === "rouge" ? "profondeurRouge" : "profondeurJaune";
-    const prof = parseInt(document.getElementById(id).value);
+    const elem = document.getElementById(id);
+    if (!elem) return;
+    const prof = parseInt(elem.value);
     if (joueur === "rouge") ETAT.profondeur_rouge = prof;
     else ETAT.profondeur_jaune = prof;
 }
 
 async function changerStrategie() {
-    ETAT.ia_rouge = document.getElementById("strategieRouge").value;
-    ETAT.ia_jaune = document.getElementById("strategieJaune").value;
+    const sR = document.getElementById("strategieRouge");
+    const sJ = document.getElementById("strategieJaune");
+    if (sR) ETAT.ia_rouge = sR.value;
+    if (sJ) ETAT.ia_jaune = sJ.value;
 }
 
 function appliquerDelaiIA() {
-    ETAT.delai_ia = parseInt(document.getElementById("delaiIA").value) || 600;
+    const elem = document.getElementById("delaiIA");
+    if (elem) ETAT.delai_ia = parseInt(elem.value) || 600;
     stopperTimerIA();
     if (ETAT.mode === 0 && !ETAT.resultat) demarrerTimerIA();
 }
